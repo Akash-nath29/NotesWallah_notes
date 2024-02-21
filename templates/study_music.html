@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block body %}
+<div class="main">
+    <b><h2 class="share-music-header">Share Notes</h2></b>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <ul>
+        {% for category, message in messages %}
+        <li class="{{ category }}">{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    {% endwith %}
+
+    <form class="share-music-generate" method="POST" action="{{ url_for('share_music') }}"
+        enctype="multipart/form-data">
+        <label for="music_link">Music Link (Paste YouTube Link):</label>
+            <input type="text" id="music_link" name="music_link" required>
+            <label for="music_link">Add Music Name:</label>
+            <input type="text" id="music_name" name="music_name" required>
+
+            <button type="submit">Share Notes</button>
+    </form>
+
+    <p>Return to <a href="{{ url_for('dashboard') }}">Dashboard</a>.</p>
+</div>
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block body %}
+<div class="controls">
+    <div class="buttons">
+        <button onclick="openNotes()">Notes</button>
+        <button onclick="openMusic()">Music</button>
+    </div>
+</div>
+{% if post_details %}
+<div class="tab-container" style="position: relative;">
+    <div class="tabContent" id="notes">
+        <a href="/jisce">
+            <div class="card-college">
+                <div class="card-img"></div>
+                <div class="card-info">
+                    <div class="card-text">
+                        <p class="text-title">JISCE</p>
+                    </div>
+                    <div class="card-icon">
+                        <svg class="icon" viewBox="0 0 28 25">
+                            <path
+                                d="M13.145 2.13l1.94-1.867 12.178 12-12.178 12-1.94-1.867 8.931-8.8H.737V10.93h21.339z">
+                            </path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </a>
+        <a href="/nit">
+            <div class="card-college">
+                <div class="card-img nit"></div>
+                <div class="card-info">
+                    <div class="card-text">
+                        <p class="text-title">NIT</p>
+                    </div>
+                    <div class="card-icon">
+                        <svg class="icon" viewBox="0 0 28 25">
+                            <path
+                                d="M13.145 2.13l1.94-1.867 12.178 12-12.178 12-1.94-1.867 8.931-8.8H.737V10.93h21.339z">
+                            </path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </a>
+        <a href="/jisu">
+            <div class="card-college">
+                <div class="card-img jisuni"></div>
+                <div class="card-info">
+                    <div class="card-text">
+                        <p class="text-title">JIS University</p>
+                    </div>
+                    <div class="card-icon">
+                        <svg class="icon" viewBox="0 0 28 25">
+                            <path
+                                d="M13.145 2.13l1.94-1.867 12.178 12-12.178 12-1.94-1.867 8.931-8.8H.737V10.93h21.339z">
+                            </path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="tabContent" id="music">
+        {% for music in musiclist %}
+        <div class="music-card" style="flex-basis: 50%;">
+            <span style="display: flex; align-items: center; justify-content: center; margin: 2vh 0;"><img
+                    src="{{music.author_profile_picture}}" alt="Profile Picture of Author" width="50px"
+                    style="border-radius: 50%; aspect-ratio: 1/1; size: cover;">
+                <p style="margin: 2vh 1vw;"><b><a
+                            href="{{ url_for('author_profile', user_id=music.music.author.id) }}">{{music.music.author.username}}</a></b>
+                    {{music.music.posted_at.strftime("%Y %H:%M:%S")}}
+                </p>
+            </span>
+            <iframe id="musicFrame" src="https://www.youtube.com/embed/{{music.music.music_link}}"
+                title="{{music.music.music_name}}" frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen style="border: 1px solid black;"></iframe>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% else %}
+<div class="text-content">
+    <center>
+        <h1 style="color: grey; font-size: 30px;">No Posts Available</h1>
+    </center>
+</div>
+{% endif %}
+{% endblock %}

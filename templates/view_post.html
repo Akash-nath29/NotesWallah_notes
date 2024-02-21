@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block body %}
+
+<div class="body" style="display: flex; align-items: center; justify-content: space-evenly; width: 100%;">
+    <div class="main" style="border-right: 2px solid black;">
+        <b>
+            <p>Return to <a href="{{ url_for('dashboard') }}">Dashboard</a>.</p>
+            <!-- <h2 class="share-notes-header">View Post</h2> -->
+        </b>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <ul>
+            {% for category, message in messages %}
+            <li class="{{ category }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endwith %}
+
+        <div class="share-notes-generate">
+            <h3>File Name: {{ post.file_name }}</h3>
+            <p>File Description: {{ post.file_description }}</p>
+            <p>College: {{ post.college }}</p>
+            <p>Uploaded By: {{ post.author.username }}</p>
+            <p>Uploaded On: {{ post.posted_at.strftime('%Y-%m-%d') }}</p>
+        </div>
+        <a id="downloadBtn" href="{{ url_for('download_file', post_id=post.id) }}" download>Download</a>
+
+    </div>
+    <div class="main">
+        <div class="comment-box">
+            <h1>Comments</h1>
+            <form action="{{ url_for('add_comment', post_id=post.id) }}" method="post">
+                <input type="text" name="comment" id="comment" placeholder="Comment your thoughts..." autocomplete="off">
+                <input type="submit" value="Add Comment"/>
+            </form>
+            <ul class="comment-list">
+                {% for comment in comments %}
+                <li><strong>{{ comment.author.username }}</strong>: {{ comment.comment }}    <i style="font-size: 10px;">{{ comment.commented_at }}</i></li>
+                {% endfor %}
+            </ul>
+
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

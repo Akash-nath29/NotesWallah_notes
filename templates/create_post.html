@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block body %}
+<div class="main">
+    <b>
+        <h2 class="share-notes-header">Share Notes</h2>
+    </b>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <ul>
+        {% for category, message in messages %}
+        <li class="{{ category }}">{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    {% endwith %}
+
+    <form class="share-notes-generate" method="POST" action="{{ url_for('create_post') }}"
+        enctype="multipart/form-data">
+        <label for="file">File:</label>
+        <input type="file" id="file" name="file" required>
+
+        <label for="file_name">File Name:</label>
+        <input type="text" id="file_name" name="file_name" required>
+
+        <label for="file_description">File Description:</label>
+        <textarea id="file_description" name="file_description" rows="4"></textarea>
+
+        <label for="college">College</label>
+        <select name="college" id="college">
+            <option value="jisce">JISCE</option>
+            <option value="nit">NIT</option>
+            <option value="jisuni">JIS University</option>
+        </select>
+
+        <button type="submit">Share Notes</button>
+    </form>
+
+    <p>Return to <a href="{{ url_for('dashboard') }}">Dashboard</a>.</p>
+</div>
+{% endblock %}
