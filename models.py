@@ -10,6 +10,7 @@ class User(db.Model):
     posts = db.relationship('Post', backref='author', lazy=True)
     musics = db.relationship('Music', backref='author', lazy=True)
     comments = db.relationship('Comment', backref='author', lazy=True)
+    role = db.Column(db.String(10), default='user')
     profile_picture = db.Column(db.String(255), default='static/img/default.png')
 
 class Post(db.Model):

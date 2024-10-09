@@ -124,6 +124,8 @@ def admin_panel_edit_music(music_id):
 
 @app.route('/')
 def home():
+    if 'user_id' in session:
+        return redirect(url_for('dashboard'))
     return render_template('index.html')
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -466,7 +468,7 @@ def jisce():
         flash('You need to log in first.', 'danger')
         return redirect(url_for('login'))
     
-    jisce_notes = Post.query.filter_by(college='JISCE').order_by(desc(Post.id)).all()
+    jisce_notes = Post.query.filter_by(college='jisce').order_by(desc(Post.id)).all()
     current_user = User.query.filter_by(id=session['user_id']).first()
     post_details = []
     for post in jisce_notes:

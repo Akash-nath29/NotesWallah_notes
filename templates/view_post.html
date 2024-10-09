@@ -37,7 +37,7 @@
             </form>
             <ul class="comment-list">
                 {% for comment in comments %}
-                <li><strong>{{ comment.author.username }}</strong>: {{ comment.comment }}    <i style="font-size: 10px;">{{ comment.commented_at }}</i></li>
+                <li><span style="font-weight: 700;">{{ comment.author.username }}</span>: {{ comment.comment }}    <i style="font-size: 10px;">{{ comment.commented_at }}</i></li>
                 {% endfor %}
             </ul>
 
