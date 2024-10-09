@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+</head>
+<body>
+    <div class="container">
+        {% if posts %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Post ID</th>
+                    <th>Post Name</th>
+                    <th>Post Description</th>
+                    <th>Post Path</th>
+                    <th>Post Date</th>
+                    <th>Post College</th>
+                    <th>Post Author</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for post in posts %}
+                <tr>
+                    <td>{{ post.id }}</td>
+                    <td>{{ post.file_name }}</td>
+                    <td>{{ post.file_description }}</td>
+                    <td>{{ post.file_path }}</td>
+                    <td>{{ post.posted_at }}</td>
+                    <td>{{ post.college }}</td>
+                    <td>{{ post.author.username }}</td>
+                    <td>
+                        <a href="#">Edit</a>
+                        <a href="#">Delete</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+</body>
+</html>

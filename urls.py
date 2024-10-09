@@ -26,6 +26,8 @@ from authlib.integrations.flask_client import OAuth
 from urllib.parse import quote_plus, urlencode
 import uuid
 from models import *
+from utils.generate_uid import generate_uid
+from datetime import timedelta
 # import json
 
 # import pyrebase
@@ -42,16 +44,17 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///database.db"
 app.secret_key = secrets.token_hex(64)
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=1)
 
 @app.route('/admin')
 def admin_panel():
     
-    if 'user_id' not in session:
+    if 'user_uid' not in session:
         flash('You need to log in first.', 'danger')
         return redirect(url_for('login'))
     
-    current_user = User.query.get(session['user_id'])
-    if current_user.id != 2 and current_user.id != 3:
+    current_user = User.query.filter_by(uid=session['user_uid']).first()
+    if current_user.role != 'admin':
         flash('You do not have permission to access the admin panel.', 'danger')
         return redirect(url_for('dashboard'))
     
@@ -148,7 +151,7 @@ def login():
         user = User.query.filter_by(email=email).first()
         if user and check_password_hash(user.password, password):
             flash('Login successful!', 'success')
-            session['user_id'] = user.id
+            session['user_uid'] = user.uid
             return redirect(url_for('dashboard'))
         else:
             flash('Login failed. Check your username and password.', 'danger')
@@ -216,6 +219,7 @@ def register():
         username = request.form['username']
         email = request.form['email']
         password = request.form['password']
+        uid = generate_uid('user')
 
 
         # try:
@@ -241,7 +245,7 @@ def register():
         else:
             hashed_password = generate_password_hash(password)
 
-            new_user = User(username=username, email=email, password=hashed_password)
+            new_user = User(uid=uid, username=username, email=email, password=hashed_password)
 
             db.session.add(new_user)
             db.session.commit()
@@ -263,7 +267,7 @@ def logout():
 
 @app.route('/dashboard')
 def dashboard():
-    if 'user_id' not in session:
+    if 'user_uid' not in session:
         flash('You need to log in first.', 'danger')
         return redirect(url_for('login'))
     
@@ -282,7 +286,7 @@ def dashboard():
         profile_picture = author.profile_picture
         music_details.append({'music': music, 'author_profile_picture': profile_picture})
 
-    current_user = User.query.filter_by(id=session['user_id']).first()
+    current_user = User.query.filter_by(uid=session['user_uid']).first()
     
     return render_template('dashboard.html', post_details=post_details, musiclist=music_details, curr_user=current_user)
 
@@ -304,7 +308,7 @@ def upload_file(file_or_path):
 
 @app.route('/create_post', methods=['GET', 'POST'])
 def create_post():
-    if 'user_id' not in session:
+    if 'user_uid' not in session:
         flash('You need to log in first.', 'danger')
         return redirect(url_for('login'))
 
@@ -315,7 +319,7 @@ def create_post():
         college = request.form['college']
 
         if file:
-            user_id = session['user_id']
+            user_id = User.query.filter_by(uid=session['user_uid']).first().id
             file_path = upload_file(file)
 
             new_post = Post(file_name=file_name, file_description=file_description,  file_path=file_path, college=college, posted_at=ist_now, user_id=user_id)
@@ -328,7 +332,7 @@ def create_post():
 
         else:
             flash('Please upload a file.', 'danger')
-    current_user = User.query.filter_by(id=session['user_id']).first()
+    current_user = User.query.filter_by(uid=session['user_uid']).first()
     return render_template('create_post.html', curr_user=current_user)
 
 @app.route('/view_post/<int:post_id>')
@@ -358,11 +362,11 @@ def download_file(post_id):
 
 @app.route('/profile', methods=['GET', 'POST'])
 def profile():
-    if 'user_id' not in session:
+    if 'user_uid' not in session:
         flash('You need to log in first.', 'danger')
         return redirect(url_for('login'))
 
-    user = User.query.get(session['user_id'])
+    user = User.query.filter_by(uid=session['user_uid']).first()
 
     if request.method == 'POST':
         file = request.files['profile_picture']
@@ -464,12 +468,12 @@ def generate():
 
 @app.route('/jisce')
 def jisce():
-    if 'user_id' not in session:
+    if 'user_uid' not in session:
         flash('You need to log in first.', 'danger')
         return redirect(url_for('login'))
     
     jisce_notes = Post.query.filter_by(college='jisce').order_by(desc(Post.id)).all()
-    current_user = User.query.filter_by(id=session['user_id']).first()
+    current_user = User.query.filter_by(uid=session['user_uid']).first()
     post_details = []
     for post in jisce_notes:
         author = post.author
