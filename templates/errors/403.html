@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>403 Forbidden</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            text-align: center;
+            padding: 50px;
+        }
+
+        h1 {
+            font-size: 50px;
+            color: #dc3545;
+            /* Bootstrap Danger color */
+        }
+
+        p {
+            font-size: 20px;
+        }
+
+        a {
+            color: #007bff;
+            /* Bootstrap Primary color */
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>403 Forbidden</h1>
+        <p>Sorry, you don't have permission to access this page.</p>
+        <img src="{{url_for('static', filename='img/403.gif')}}" alt="" width="350px">
+        <a href="{{ url_for('login') }}">Go to Login</a> <!-- Redirect to login page -->
+    </div>
+</body>
+
+</html>

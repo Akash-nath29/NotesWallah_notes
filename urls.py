@@ -8,7 +8,7 @@
 
 
 from flask import Flask, render_template, request, redirect, session, flash, url_for, send_file, abort
-from flask_sqlalchemy import SQLAlchemy
+# from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import desc
 import secrets
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -22,12 +22,13 @@ from os import environ as env
 from dotenv import find_dotenv, load_dotenv
 import google.generativeai as genai
 import markdown2
-from authlib.integrations.flask_client import OAuth
-from urllib.parse import quote_plus, urlencode
-import uuid
+# from authlib.integrations.flask_client import OAuth
+# from urllib.parse import quote_plus, urlencode
+# import uuid
 from models import *
 from utils.generate_uid import generate_uid
 from datetime import timedelta
+from flask_login import current_user
 # import json
 
 # import pyrebase
@@ -46,106 +47,122 @@ app.secret_key = secrets.token_hex(64)
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=1)
 
-@app.route('/admin')
-def admin_panel():
+# Admin Panel
+
+class AdminModelView(ModelView):
+    def is_accessible(self):
+        if 'user_uid' in session:
+            user = User.query.filter_by(uid=session['user_uid']).first()
+            if user and user.role == 'admin':
+                return True
+        return abort(403)
+
+    def inaccessible_callback(self, name, **kwargs):
+        flash('You do not have permission to access this page.', 'danger')
+        return redirect(url_for('login'))  # Redirect to login page if not accessible
+
+admin = Admin(app)
+admin.add_view(AdminModelView(User, db.session))
+admin.add_view(AdminModelView(Post, db.session))
+admin.add_view(AdminModelView(Music, db.session))
+
+# Error Handlers
+
+@app.errorhandler(403)
+def forbidden(error):
+    return render_template('errors/403.html'), 403
+
+@app.errorhandler(404)
+def page_not_found(error):
+    return render_template('errors/404.html'), 404
+
+
+# @app.route('/admin')
+# def admin_panel():
     
-    if 'user_uid' not in session:
-        flash('You need to log in first.', 'danger')
-        return redirect(url_for('login'))
+#     if 'user_uid' not in session:
+#         flash('You need to log in first.', 'danger')
+#         return redirect(url_for('login'))
     
-    current_user = User.query.filter_by(uid=session['user_uid']).first()
-    if current_user.role != 'admin':
-        flash('You do not have permission to access the admin panel.', 'danger')
-        return redirect(url_for('dashboard'))
+#     current_user = User.query.filter_by(uid=session['user_uid']).first()
+#     if current_user.role != 'admin':
+#         flash('You do not have permission to access the admin panel.', 'danger')
+#         return redirect(url_for('dashboard'))
     
-    posts = Post.query.all()
-    users = User.query.all()
-    musics = Music.query.all()
-    comments = Comment.query.all()
-    return render_template("/admin/admin_panel.html", posts=posts, musics=musics, users=users, comments=comments)
+#     posts = Post.query.all()
+#     users = User.query.all()
+#     musics = Music.query.all()
+#     comments = Comment.query.all()
+#     return render_template("/admin/admin_panel.html", posts=posts, musics=musics, users=users, comments=comments)
 
 
 
-@app.route('/admin/deleteuser/<int:user_id>')
-def admin_panel_delete_user(user_id):
-    user = User.query.get(user_id)
-    db.session.delete(user)
-    db.session.commit()
-    return redirect(url_for('admin_panel'))
+# @app.route('/admin/deleteuser/<int:user_id>')
+# def admin_panel_delete_user(user_id):
+#     user = User.query.get(user_id)
+#     db.session.delete(user)
+#     db.session.commit()
+#     return redirect(url_for('admin_panel'))
 
-@app.route('/admin/user/<int:user_id>', methods=['GET', 'POST'])
-def admin_panel_edit_user(user_id):
-    user = User.query.get(user_id)
+# @app.route('/admin/user/<int:user_id>', methods=['GET', 'POST'])
+# def admin_panel_edit_user(user_id):
+#     user = User.query.get(user_id)
 
-    if request.method == 'POST':
-        user.file_name = request.form.get('file_name')
-        user.file_description = request.form.get('file_description')
-        db.session.commit()
-        return redirect(url_for('admin_panel'))
+#     if request.method == 'POST':
+#         user.file_name = request.form.get('file_name')
+#         user.file_description = request.form.get('file_description')
+#         db.session.commit()
+#         return redirect(url_for('admin_panel'))
 
-    return render_template('/admin/edit_user.html', user=user)
+#     return render_template('/admin/edit_user.html', user=user)
 
 
 
-@app.route('/admin/deletepost/<int:post_id>')
-def admin_panel_delete_post(post_id):
-    post = Post.query.get(post_id)
-    db.session.delete(post)
-    db.session.commit()
-    return redirect(url_for('admin_panel'))
+# @app.route('/admin/deletepost/<int:post_id>')
+# def admin_panel_delete_post(post_id):
+#     post = Post.query.get(post_id)
+#     db.session.delete(post)
+#     db.session.commit()
+#     return redirect(url_for('admin_panel'))
 
-@app.route('/admin/editpost/<int:post_id>', methods=['GET', 'POST'])
-def admin_panel_edit_post(post_id):
-    post = Post.query.get(post_id)
+# @app.route('/admin/editpost/<int:post_id>', methods=['GET', 'POST'])
+# def admin_panel_edit_post(post_id):
+#     post = Post.query.get(post_id)
 
-    if request.method == 'POST':
-        post.file_name = request.form.get('file_name')
-        post.file_description = request.form.get('file_description')
-        db.session.commit()
-        return redirect(url_for('admin_panel'))
+#     if request.method == 'POST':
+#         post.file_name = request.form.get('file_name')
+#         post.file_description = request.form.get('file_description')
+#         db.session.commit()
+#         return redirect(url_for('admin_panel'))
 
-    return render_template('/admin/edit_post.html', post=post)
+#     return render_template('/admin/edit_post.html', post=post)
 
-@app.route('/admin/deletemusic/<int:music_id>')
-def admin_panel_delete_music(music_id):
-    music = Music.query.get(music_id)
-    db.session.delete(music)
-    db.session.commit()
-    return redirect(url_for('admin_panel'))
+# @app.route('/admin/deletemusic/<int:music_id>')
+# def admin_panel_delete_music(music_id):
+#     music = Music.query.get(music_id)
+#     db.session.delete(music)
+#     db.session.commit()
+#     return redirect(url_for('admin_panel'))
 
-@app.route('/admin/editmusic/<int:music_id>', methods=['GET', 'POST'])
-def admin_panel_edit_music(music_id):
-    music = Music.query.get(music_id)
+# @app.route('/admin/editmusic/<int:music_id>', methods=['GET', 'POST'])
+# def admin_panel_edit_music(music_id):
+#     music = Music.query.get(music_id)
 
-    if request.method == 'POST':
-        music.music_link = request.form.get('music_link')
-        music.music_name = request.form.get('music_name')
-        db.session.commit()
-        return redirect(url_for('admin_panel'))
+#     if request.method == 'POST':
+#         music.music_link = request.form.get('music_link')
+#         music.music_name = request.form.get('music_name')
+#         db.session.commit()
+#         return redirect(url_for('admin_panel'))
 
-    return render_template('/admin/edit_music.html', music=music)
+#     return render_template('/admin/edit_music.html', music=music)
 
-@app.route('/')
-def home():
-    if 'user_id' in session:
-        return redirect(url_for('dashboard'))
-    return render_template('index.html')
+# User Authentication
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
-
-        # try:
-        #     auth.sign_in_with_email_and_password(email, password)
-        #     session['user_id'] = user.id  
-        #     flash('Login Successful', 'Success')
-        #     return redirect(url_for('dashboard'))
-        # except:
-        #     flash('Enter Proper email and password', 'danger')
-        #     return redirect(url_for('login'))
-
 
 
         user = User.query.filter_by(email=email).first()
@@ -265,6 +282,14 @@ def logout():
 
     return redirect(url_for('home'))
 
+# App routes
+
+@app.route('/')
+def home():
+    if 'user_id' in session:
+        return redirect(url_for('dashboard'))
+    return render_template('index.html')
+
 @app.route('/dashboard')
 def dashboard():
     if 'user_uid' not in session:
@@ -298,8 +323,7 @@ def upload_file(file_or_path):
         return file_or_path
 
     if file_or_path and hasattr(file_or_path, 'filename'):
-        unique_filename = str(uuid.uuid4()) + '_' + \
-            secure_filename(file_or_path.filename)
+        unique_filename = generate_uid("file") + secure_filename(file_or_path.filename)
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
         file_or_path.save(file_path)
         return file_path
@@ -371,8 +395,7 @@ def profile():
     if request.method == 'POST':
         file = request.files['profile_picture']
         if file:
-            filename = str(uuid.uuid4()) + '_' + \
-            secure_filename(file.filename)
+            filename = generate_uid("file") + secure_filename(file.filename)
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(file_path)
             user.profile_picture = file_path
@@ -401,7 +424,7 @@ def author_profile(user_id):
 
 @app.route('/study_music', methods=['GET', 'POST'])
 def share_music():
-    if 'user_id' not in session:
+    if 'user_uid' not in session:
         flash('You need to log in first.', 'danger')
         return redirect(url_for('login'))
 
@@ -409,7 +432,7 @@ def share_music():
         music_link = request.form['music_link']
         music_name = request.form['music_name']
         if music_link:
-            user_id = session['user_id']
+            user_id = User.query.filter_by(uid=session['user_uid']).first().id
             music_link = music_link.split('/')[-1]
             posted_at = ist_now
             new_music = Music(music_link=music_link, music_name=music_name, posted_at=posted_at, user_id=user_id)
@@ -422,7 +445,7 @@ def share_music():
 
         else:
             flash('Please upload a Music.', 'danger')
-    current_user = User.query.filter_by(id=session['user_id']).first()
+    current_user = User.query.filter_by(uid=session['user_uid']).first()
     return render_template('study_music.html', curr_user=current_user)
 
 @app.route('/change_password', methods=['GET', 'POST'])
