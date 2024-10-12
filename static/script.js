@@ -4,16 +4,27 @@ const noRefresh = (e) => {
 function downloadNote() {
     var topic = document.querySelector('#topic').value;
     var classNotesContent = document.querySelector('.generated-notes').innerText;
-    var blob = new Blob([classNotesContent], { type: 'text/plain' });
-    var url = window.URL.createObjectURL(blob);
-    var link = document.createElement('a');
-    link.download = `${topic}notes.txt`;
-    link.href = url;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
+
+    // Create a new jsPDF instance
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    // Add the title at the top of the PDF
+    doc.setFontSize(16);
+    doc.text(topic + ' Notes', 10, 10);
+
+    // Set the font size for the notes content
+    doc.setFontSize(12);
+
+    // Add the content with word wrap
+    var splitContent = doc.splitTextToSize(classNotesContent, 180); // 180 is the max width in mm
+    doc.text(splitContent, 10, 20); // Start text at x: 10, y: 20
+
+    // Save the generated PDF with the topic as the filename
+    doc.save(`${topic}notes.pdf`);
 }
+
+
 
 const openNotes = () => {
     document.querySelector("#music").style.display = "none";

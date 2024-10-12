@@ -361,14 +361,14 @@ def create_post():
 
 @app.route('/view_post/<int:post_id>')
 def view_post(post_id):
-    if 'user_id' not in session:
+    if 'user_uid' not in session:
         flash('You need to log in first.', 'danger')
         return redirect(url_for('login'))
     
     post = Post.query.get(post_id)
     file_path = post.file_path.replace("static/", "")
     # print(file_path)
-    current_user = User.query.filter_by(id=session['user_id']).first()
+    current_user = User.query.filter_by(uid=session['user_uid']).first()
     comments = Comment.query.filter_by(post_id=post_id).order_by(desc(Comment.id)).all()
     if post:
         return render_template('view_post.html', post=post, file_path=file_path, curr_user=current_user, comments=comments)
@@ -469,7 +469,7 @@ def change_pass():
 
 @app.route('/generate', methods=['GET', 'POST'])
 def generate():
-    if 'user_id' not in session:
+    if 'user_uid' not in session:
         flash('You need to log in first.', 'danger')
         return redirect(url_for('login'))
     
@@ -484,9 +484,9 @@ def generate():
         #     print(chunk.text)
         #     print("_"*80)
         html_content = markdown2.markdown(response.candidates[0].content.parts[0].text)
-        current_user = User.query.filter_by(id=session['user_id']).first()
+        current_user = User.query.filter_by(uid=session['user_uid']).first()
         return render_template('generate_notes.html', result=html_content, curr_user=current_user)
-    current_user = User.query.filter_by(id=session['user_id']).first()
+    current_user = User.query.filter_by(uid=session['user_uid']).first()
     return render_template('generate_notes.html', curr_user = current_user)
 
 @app.route('/jisce')
@@ -507,12 +507,12 @@ def jisce():
 
 @app.route('/nit')
 def nit():
-    if 'user_id' not in session:
+    if 'user_uid' not in session:
         flash('You need to log in first.', 'danger')
         return redirect(url_for('login'))
     
     nit_notes = Post.query.filter_by(college='NIT').order_by(desc(Post.id)).all()
-    current_user = User.query.filter_by(id=session['user_id']).first()
+    current_user = User.query.filter_by(uid=session['user_uid']).first()
     post_details = []
     for post in nit_notes:
         author = post.author
@@ -523,12 +523,12 @@ def nit():
 
 @app.route('/jisu')
 def jisu():
-    if 'user_id' not in session:
+    if 'user_uid' not in session:
         flash('You need to log in first.', 'danger')
         return redirect(url_for('login'))
     
     jisu_notes = Post.query.filter_by(college='JISUni').order_by(desc(Post.id)).all()
-    current_user = User.query.filter_by(id=session['user_id']).first()
+    current_user = User.query.filter_by(uid=session['user_uid']).first()
     post_details = []
     for post in jisu_notes:
         author = post.author
@@ -539,13 +539,13 @@ def jisu():
 
 @app.route('/add_comment/<int:post_id>', methods=['GET', 'POST'])
 def add_comment(post_id):
-    if 'user_id' not in session:
+    if 'user_uid' not in session:
         flash('You need to log in first.', 'danger')
         return redirect(url_for('login'))
     
     if request.method == 'POST':
         comment = request.form['comment']
-        user_id = session['user_id']
+        user_id = User.query.filter_by(uid=session['user_uid']).first().id
         commented_at = ist_now
         new_comment = Comment(comment=comment, commented_at=commented_at, user_id=user_id, post_id=post_id)
 
